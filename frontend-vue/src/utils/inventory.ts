@@ -16,6 +16,19 @@ export const LOW_STOCK_THRESHOLD = 10
 export const isLowStock = (quantity: number, threshold = LOW_STOCK_THRESHOLD): boolean =>
   quantity < threshold
 
+/** 低库存行样式：红色加粗 */
+export const LOW_STOCK_ROW_STYLE: Record<string, string> = {
+  color: '#f56c6c',
+  fontWeight: 'bold',
+}
+
+/**
+ * el-table 的 :row-style 回调。
+ * 注意 Element Plus 传入的是 { row, rowIndex }，而不是行数据本身。
+ */
+export const getInventoryRowStyle = ({ row }: { row: { quantity: number } }) =>
+  isLowStock(row.quantity) ? LOW_STOCK_ROW_STYLE : {}
+
 /** 根据搜索条件构造查询参数：空值不传，keyword 去除首尾空格 */
 export const buildInventoryQuery = (
   keyword: string,

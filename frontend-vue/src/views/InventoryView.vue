@@ -8,7 +8,7 @@
 import { ref, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import { getInventory, getWarehouses, type Warehouse, type InventoryItem } from '@/api'
-import { buildInventoryQuery, debounce, isLowStock } from '@/utils/inventory'
+import { buildInventoryQuery, debounce, getInventoryRowStyle } from '@/utils/inventory'
 
 const keyword = ref('')
 const warehouseId = ref<number>()
@@ -70,10 +70,6 @@ const handleSizeChange = (size: number) => {
   loadInventory()
 }
 
-// 低库存行高亮
-const getRowStyle = (row: InventoryItem) =>
-  isLowStock(row.quantity) ? { color: '#f56c6c', fontWeight: 'bold' } : {}
-
 onMounted(async () => {
   try {
     warehouses.value = (await getWarehouses()).data
@@ -127,8 +123,9 @@ onMounted(async () => {
     </div>
 
     <!-- 表格 -->
-    <el-table :data="inventoryList" v-loading="loading" border stripe :row-style="getRowStyle">
+    <el-table :data="inventoryList" v-loading="loading" border stripe :row-style="getInventoryRowStyle">
       <el-table-column prop="productName" label="商品名称" min-width="140" />
+      <el-table-column prop="supplierName" label="供应商" width="120" />
       <el-table-column prop="sku" label="SKU" width="140" />
       <el-table-column prop="locationCode" label="库位编码" width="140" />
       <el-table-column prop="warehouseName" label="仓库" width="120" />

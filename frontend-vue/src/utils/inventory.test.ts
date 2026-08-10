@@ -1,5 +1,11 @@
 import { describe, expect, it, vi } from 'vitest'
-import { buildInventoryQuery, debounce, isLowStock, LOW_STOCK_THRESHOLD } from './inventory'
+import {
+  buildInventoryQuery,
+  debounce,
+  getInventoryRowStyle,
+  isLowStock,
+  LOW_STOCK_THRESHOLD,
+} from './inventory'
 
 describe('buildInventoryQuery 库存筛选参数构造', () => {
   it('keyword 去除首尾空格，空条件不传参', () => {
@@ -31,6 +37,19 @@ describe('isLowStock 低库存判断', () => {
   it('数量等于或高于阈值时不高亮', () => {
     expect(isLowStock(LOW_STOCK_THRESHOLD)).toBe(false)
     expect(isLowStock(100)).toBe(false)
+  })
+})
+
+describe('getInventoryRowStyle 低库存行高亮', () => {
+  it('数量低于阈值时返回红色加粗样式', () => {
+    expect(getInventoryRowStyle({ row: { quantity: LOW_STOCK_THRESHOLD - 1 } })).toEqual({
+      color: '#f56c6c',
+      fontWeight: 'bold',
+    })
+  })
+
+  it('数量等于或高于阈值时返回空样式', () => {
+    expect(getInventoryRowStyle({ row: { quantity: LOW_STOCK_THRESHOLD } })).toEqual({})
   })
 })
 

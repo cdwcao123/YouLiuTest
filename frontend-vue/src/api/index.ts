@@ -82,6 +82,7 @@ export interface InventoryItem {
   productId: number
   productName: string
   sku: string
+  supplierName: string
   locationCode: string
   warehouseName: string
   quantity: number
