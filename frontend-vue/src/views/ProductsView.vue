@@ -1,15 +1,10 @@
 <script setup lang="ts">
 /**
- * 商品管理页 — 参考实现
+ * 商品管理页
  *
- * 展示了：
- * - 列表 + 搜索
- * - 新增 / 编辑弹窗
- * - 删除确认
- * - 分页（前端分页，简单示例）
- *
- * ️ BUG 预埋点：编辑后返回列表时页码会重置为第1页
- *   候选人需要在任务3中修复此问题
+ * Bug 修复（任务 3）：
+ * - 改为后端分页，编辑后不再强制跳回第 1 页；
+ * - 删除当前页最后一条且非第 1 页时，自动回退一页。
  */
 import { ref, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
@@ -23,13 +18,19 @@ const dialogTitle = ref('新增商品')
 const form = ref({ id: 0, name: '', sku: '', unit: '个' })
 const currentPage = ref(1)
 const pageSize = ref(10)
+const total = ref(0)
 
 // 搜索
 const loadProducts = async () => {
   loading.value = true
   try {
-    const res = await getProducts(keyword.value || undefined)
-    products.value = res.data
+    const res = await getProducts({
+      keyword: keyword.value || undefined,
+      page: currentPage.value,
+      pageSize: pageSize.value,
+    })
+    products.value = res.data.list
+    total.value = res.data.total
   } catch (e: any) {
     ElMessage.error('加载失败: ' + (e.response?.data?.message || e.message))
   } finally {
@@ -37,13 +38,11 @@ const loadProducts = async () => {
   }
 }
 
-// 分页后的数据
-const pagedProducts = computed(() => {
-  const start = (currentPage.value - 1) * pageSize.value
-  return products.value.slice(start, start + pageSize.value)
-})
-
-import { computed } from 'vue'
+// 搜索时回到第 1 页
+const handleSearch = () => {
+  currentPage.value = 1
+  loadProducts()
+}
 
 onMounted(loadProducts)
 
@@ -72,8 +71,7 @@ const handleSubmit = async () => {
       ElMessage.success('创建成功')
     }
     dialogVisible.value = false
-    // ️ BUG: 编辑后不保留当前页码
-    currentPage.value = 1
+    // Bug 修复：编辑/新增完成后保留当前页码，不再重置为第 1 页
     await loadProducts()
   } catch (e: any) {
     ElMessage.error(e.response?.data?.message || '操作失败')
@@ -86,10 +84,25 @@ const handleDelete = async (id: number) => {
     await ElMessageBox.confirm('确定删除该商品吗？', '确认删除', { type: 'warning' })
     await deleteProduct(id)
     ElMessage.success('删除成功')
+    // 当前页删空时回退一页，避免停留在空页
+    if (products.value.length === 1 && currentPage.value > 1) {
+      currentPage.value -= 1
+    }
     await loadProducts()
   } catch {
     // 取消
   }
+}
+
+const handlePageChange = (page: number) => {
+  currentPage.value = page
+  loadProducts()
+}
+
+const handleSizeChange = (size: number) => {
+  pageSize.value = size
+  currentPage.value = 1
+  loadProducts()
 }
 </script>
 
@@ -97,14 +110,20 @@ const handleDelete = async (id: number) => {
   <div>
     <!-- 搜索栏 -->
     <div style="display: flex; gap: 12px; margin-bottom: 16px">
-      <el-input v-model="keyword" placeholder="搜索商品名称/SKU..." style="width: 300px" clearable
-        @keyup.enter="loadProducts" @clear="loadProducts" />
-      <el-button type="primary" @click="loadProducts">搜索</el-button>
+      <el-input
+        v-model="keyword"
+        placeholder="搜索商品名称/SKU..."
+        style="width: 300px"
+        clearable
+        @keyup.enter="handleSearch"
+        @clear="handleSearch"
+      />
+      <el-button type="primary" @click="handleSearch">搜索</el-button>
       <el-button type="success" @click="handleAdd">新增商品</el-button>
     </div>
 
     <!-- 表格 -->
-    <el-table :data="pagedProducts" v-loading="loading" border stripe>
+    <el-table :data="products" v-loading="loading" border stripe>
       <el-table-column prop="id" label="ID" width="80" />
       <el-table-column prop="name" label="商品名称" />
       <el-table-column prop="sku" label="SKU" width="150" />
@@ -117,13 +136,16 @@ const handleDelete = async (id: number) => {
       </el-table-column>
     </el-table>
 
-    <!-- 分页 -->
+    <!-- 分页（后端分页） -->
     <div style="margin-top: 16px; text-align: right">
       <el-pagination
         v-model:current-page="currentPage"
-        :page-size="pageSize"
-        :total="products.length"
-        layout="total, prev, pager, next"
+        v-model:page-size="pageSize"
+        :total="total"
+        :page-sizes="[10, 20, 50, 100]"
+        layout="total, sizes, prev, pager, next"
+        @current-change="handlePageChange"
+        @size-change="handleSizeChange"
       />
     </div>
 

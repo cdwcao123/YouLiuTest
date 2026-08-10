@@ -1,6 +1,7 @@
 package com.wms.controller;
 
 import com.wms.common.ApiResponse;
+import com.wms.common.PageResult;
 import com.wms.dto.ProductCreateRequest;
 import com.wms.dto.ProductResponse;
 import com.wms.dto.ProductUpdateRequest;
@@ -9,10 +10,10 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
 /**
- * 商品管理 Controller — 参考实现
+ * 商品管理 Controller。
+ * 提供商品的分页查询、详情、新增、更新、删除接口，
+ * 是其它业务（入库/出库/库存）的基础数据来源。
  */
 @RestController
 @RequestMapping("/api/products")
@@ -21,28 +22,35 @@ public class ProductController {
 
     private final ProductService productService;
 
+    /** 商品分页列表：支持 keyword 模糊搜索（名称/SKU）+ 分页 */
     @GetMapping
-    public ApiResponse<List<ProductResponse>> list(
-            @RequestParam(required = false) String keyword) {
-        return ApiResponse.success(productService.list(keyword));
+    public ApiResponse<PageResult<ProductResponse>> list(
+            @RequestParam(required = false) String keyword,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int pageSize) {
+        return ApiResponse.success(productService.page(keyword, page, pageSize));
     }
 
+    /** 商品详情 */
     @GetMapping("/{id}")
     public ApiResponse<ProductResponse> getById(@PathVariable Long id) {
         return ApiResponse.success(productService.getById(id));
     }
 
+    /** 新增商品（SKU 唯一，重复会报业务异常） */
     @PostMapping
     public ApiResponse<ProductResponse> create(@Valid @RequestBody ProductCreateRequest request) {
         return ApiResponse.success(productService.create(request));
     }
 
+    /** 更新商品名称/单位（SKU 不允许修改） */
     @PutMapping("/{id}")
     public ApiResponse<ProductResponse> update(@PathVariable Long id,
                                                 @Valid @RequestBody ProductUpdateRequest request) {
         return ApiResponse.success(productService.update(id, request));
     }
 
+    /** 删除商品（存在关联库存或出入库单时会被拒绝） */
     @DeleteMapping("/{id}")
     public ApiResponse<Void> delete(@PathVariable Long id) {
         productService.delete(id);
