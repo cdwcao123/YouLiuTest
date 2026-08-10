@@ -1,4 +1,5 @@
 # 开发说明（NOTES.md）
+选用java+Springboot+vue3开发，数据库采用mysql数据库，账号密码配置：root 2005
 
 ## 1. 使用的 AI 工具
 
@@ -91,8 +92,8 @@ AI 第一版把 `OutboundOrderService` 设计成“先保存出库单、再扣�
 
 ## 4. 遇到的其它问题
 
-- `vite.config.ts` 的 `/api` 代理默认指向 FastAPI 端口 8000，已改为 Java 后端端口 8080。
-- 模板 `pom.xml` 中的注释为乱码（GBK/UTF-8 编码问题），不影响编译，未改动。
+- 页面没有展示供应商名称，修改部分后端代码后再修改前端代码完成bug修改
+- 由于前端传入参数问题，导致无法高亮展示库存不足10的商品，删除错误的getrowStyle，表格直接绑定 `:row-style="getInventoryRowStyle"`，完成修复
 
 ## 5. 如果还有更多时间
 
