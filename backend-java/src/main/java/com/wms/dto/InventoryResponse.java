@@ -22,6 +22,8 @@ public class InventoryResponse {
     private String productName;
     /** 商品 SKU */
     private String sku;
+    /** 供应商名称 */
+    private String supplierName;
     /** 库位编码 */
     private String locationCode;
     /** 所属仓库名称 */

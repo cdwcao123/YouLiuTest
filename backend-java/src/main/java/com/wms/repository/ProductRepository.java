@@ -19,6 +19,9 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     /** 判断 SKU 是否已存在（新增商品时校验唯一性） */
     boolean existsBySku(String sku);
 
+    /** 查询尚未分配供应商的商品（启动时随机回填） */
+    List<Product> findBySupplierNameIsNull();
+
     /**
      * 模糊搜索商品（按名称或SKU）
      */

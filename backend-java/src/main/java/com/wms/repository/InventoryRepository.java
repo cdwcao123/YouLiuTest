@@ -52,7 +52,7 @@ public interface InventoryRepository extends JpaRepository<Inventory, Long> {
      */
     @Query(value = """
             SELECT new com.wms.dto.InventoryResponse(
-                i.productId, p.name, p.sku, i.locationCode, w.name, i.quantity, i.updatedAt)
+                i.productId, p.name, p.sku, p.supplierName, i.locationCode, w.name, i.quantity, i.updatedAt)
             FROM Inventory i
             JOIN Product p ON p.id = i.productId
             JOIN Location l ON l.code = i.locationCode

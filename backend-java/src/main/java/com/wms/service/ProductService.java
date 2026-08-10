@@ -2,6 +2,7 @@ package com.wms.service;
 
 import com.wms.common.BusinessException;
 import com.wms.common.PageResult;
+import com.wms.common.SupplierNames;
 import com.wms.dto.ProductCreateRequest;
 import com.wms.dto.ProductResponse;
 import com.wms.dto.ProductUpdateRequest;
@@ -73,6 +74,7 @@ public class ProductService {
                 .name(request.getName())
                 .sku(request.getSku())
                 .unit(request.getUnit() != null ? request.getUnit() : "个")
+                .supplierName(SupplierNames.random())
                 .build();
         product = productRepository.save(product);
         log.info("创建商品成功: id={}, sku={}", product.getId(), product.getSku());

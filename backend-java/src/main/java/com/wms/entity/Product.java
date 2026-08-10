@@ -35,6 +35,10 @@ public class Product {
     /** 计量单位，如 个/条/张 */
     private String unit = "个";
 
+    @Column(name = "supplier_name", length = 200)
+    /** 供应商名称（商品主数据，初始化时随机分配） */
+    private String supplierName;
+
     @Column(name = "created_at", updatable = false)
     /** 创建时间（插入时自动填充，不可更新） */
     private LocalDateTime createdAt;

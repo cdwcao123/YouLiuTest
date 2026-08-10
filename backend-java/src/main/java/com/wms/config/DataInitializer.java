@@ -1,11 +1,14 @@
 package com.wms.config;
 
+import com.wms.common.SupplierNames;
 import com.wms.entity.*;
 import com.wms.repository.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
+
+import java.util.List;
 
 /**
  * 数据初始化器：应用启动时执行。
@@ -24,6 +27,8 @@ public class DataInitializer implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
+        backfillSupplierNames();
+
         if (productRepository.count() > 0) {
             log.info("示例数据已存在，跳过初始化");
             return;
@@ -32,11 +37,11 @@ public class DataInitializer implements CommandLineRunner {
         log.info("初始化示例数据...");
 
         // 商品（5 个示例 SKU）
-        Product p1 = productRepository.save(Product.builder().name("蓝牙耳机 Pro").sku("SKU-001").unit("个").build());
-        Product p2 = productRepository.save(Product.builder().name("Type-C 数据线").sku("SKU-002").unit("条").build());
-        Product p3 = productRepository.save(Product.builder().name("无线充电板").sku("SKU-003").unit("个").build());
-        Product p4 = productRepository.save(Product.builder().name("手机壳 透明款").sku("SKU-004").unit("个").build());
-        Product p5 = productRepository.save(Product.builder().name("屏幕保护膜").sku("SKU-005").unit("张").build());
+        Product p1 = productRepository.save(Product.builder().name("蓝牙耳机 Pro").sku("SKU-001").unit("个").supplierName(SupplierNames.random()).build());
+        Product p2 = productRepository.save(Product.builder().name("Type-C 数据线").sku("SKU-002").unit("条").supplierName(SupplierNames.random()).build());
+        Product p3 = productRepository.save(Product.builder().name("无线充电板").sku("SKU-003").unit("个").supplierName(SupplierNames.random()).build());
+        Product p4 = productRepository.save(Product.builder().name("手机壳 透明款").sku("SKU-004").unit("个").supplierName(SupplierNames.random()).build());
+        Product p5 = productRepository.save(Product.builder().name("屏幕保护膜").sku("SKU-005").unit("张").supplierName(SupplierNames.random()).build());
 
         // 仓库（广州主仓 / 深圳保税仓）
         Warehouse wh1 = warehouseRepository.save(Warehouse.builder().code("WH-A").name("广州主仓").build());
@@ -58,5 +63,16 @@ public class DataInitializer implements CommandLineRunner {
         log.info("示例数据初始化完成: {} 商品, {} 仓库, {} 库位, {} 库存记录",
                 productRepository.count(), warehouseRepository.count(),
                 locationRepository.count(), inventoryRepository.count());
+    }
+
+    /** 为已有商品回填供应商名称：supplier_name 为空的商品随机分配一个供应商 */
+    private void backfillSupplierNames() {
+        List<Product> missing = productRepository.findBySupplierNameIsNull();
+        if (missing.isEmpty()) {
+            return;
+        }
+        missing.forEach(p -> p.setSupplierName(SupplierNames.random()));
+        productRepository.saveAll(missing);
+        log.info("已为 {} 个商品回填供应商名称", missing.size());
     }
 }
